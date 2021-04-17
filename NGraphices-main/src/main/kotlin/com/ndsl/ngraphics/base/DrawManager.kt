@@ -43,6 +43,7 @@ class DrawManager(val d: NDisplay) {
     var totalFreeTime = 0.0
     var totalTime = 0L
     var latestTime = 0.0
+    var worseFPS = Double.MAX_VALUE
 
     fun drawAll(g: Graphics) {
         d.sceneManager.getScene()!!.forEach { layer ->
@@ -60,10 +61,17 @@ class DrawManager(val d: NDisplay) {
         if (timer.getLast() < 0) {
             println("Can't Keep UP! delta:${timer.getLast()} timerMil:${timer.milSec} latest:${getLatestFPS()}")
         }
+
+        checkWorseFPS()
     }
 
     fun getLatestFPS(): Double {
         return 1 / (latestTime / 1000)
+    }
+
+    private fun checkWorseFPS(){
+        val f = getLatestFPS()
+        if(f < worseFPS) worseFPS = f
     }
 }
 
