@@ -11,22 +11,29 @@ import java.awt.Graphics
 import java.awt.Image
 
 abstract class DrawableBase(var color:Color = Color.BLACK):IDrawable{
+    var lastTime:Long = System.nanoTime()
     override fun onDraw(g: Graphics) {
+        val time = System.nanoTime()
         g.setColor(color){
-            draw(it)
+            draw(it,time - lastTime)
         }
+        lastTime = time
     }
-    abstract fun draw(g:Graphics)
+
+    /**
+     * @param deltaTime DeltaTime From LastFrame In Nano Second
+     */
+    abstract fun draw(g:Graphics,deltaTime:Long)
 }
 
 class Line(var from: Pos, var to:Pos,color:Color = Color.BLACK): DrawableBase(color) {
-    override fun draw(g: Graphics) {
+    override fun draw(g: Graphics, deltaTime: Long) {
         g.drawLine(from.x,from.y,to.x,to.y)
     }
 }
 
 open class Box(var r:Rect, var isFill: Boolean = false, color:Color = Color.BLACK):DrawableBase(color){
-    override fun draw(g: Graphics) {
+    override fun draw(g: Graphics, deltaTime: Long) {
         if(isFill){
             g.fillRect(r.left_up.x,r.left_up.y,r.right_down.x,r.right_down.y)
         }else{
@@ -35,8 +42,8 @@ open class Box(var r:Rect, var isFill: Boolean = false, color:Color = Color.BLAC
     }
 }
 
-class Picture(var r:Rect,var img:Image):DrawableBase(){
-    override fun draw(g: Graphics) {
+open class Picture(var r:Rect, var img:Image):DrawableBase(){
+    override fun draw(g: Graphics, deltaTime: Long) {
         g.drawImage(img,r.left_up.x,r.left_up.y,r.getWidth(),r.getHeight(),null)
     }
 }

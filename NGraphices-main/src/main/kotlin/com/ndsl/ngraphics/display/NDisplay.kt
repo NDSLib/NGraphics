@@ -12,7 +12,6 @@ import java.awt.Graphics
 import java.awt.Image
 import java.awt.Toolkit
 import java.awt.event.*
-import java.awt.image.BufferStrategy
 import java.awt.image.VolatileImage
 import javax.swing.JFrame
 import javax.swing.WindowConstants
@@ -43,7 +42,7 @@ class NDisplay(title: String, bound: Rect/*, bufferSize: Int = 3*/, onClose: Int
         addMouseWheelListener(mouse)
 
         val scene = Scene("Default")
-        scene.newLayer("Default")
+        scene.newLayer("Default",0)
         sceneManager.addScene(scene)
 
         initVolatileImage()

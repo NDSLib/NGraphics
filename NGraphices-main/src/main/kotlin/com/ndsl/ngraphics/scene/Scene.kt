@@ -4,36 +4,33 @@ import com.ndsl.ngraphics.base.Drawable
 import com.ndsl.ngraphics.scene.layer.Layer
 
 class Scene(val name: String) {
-    private val layers = mutableListOf<Layer>()
+    private val layers = mutableMapOf<Int, Layer>()
 
-    fun addLayer(l: Layer) : Scene{
-        if (layers.any { it.index == l.index }) {
-            println("[Scene-$name] Duplicated Layer Index : ${l.index}")
-            layers.removeAll { it.index == l.index }
-        }
-        layers.add(l)
+    fun addLayer(l: Layer): Scene {
+        layers.remove(l.index)
+        layers[l.index] = l
         return this
     }
 
-    fun newLayer(name:String,index:Int):Layer{
-        val layer = Layer(name,index)
+    fun newLayer(name: String, index: Int): Layer {
+        val layer = Layer(name, index)
         addLayer(layer)
         return layer
     }
 
-    fun newLayer(name:String): Layer {
+    fun newLayer(name: String): Layer {
         var last = 0
-        layers.forEach { if(last < it.index) last = it.index }
-        return newLayer(name,++last)
+        layers.forEach { if (last < it.key) last = it.key }
+        return newLayer(name, ++last)
     }
 
-    fun forEach(f:(Layer)->Unit){
-        layers.forEach { f(it) }
+    fun forEach(f: (Layer) -> Unit) {
+        layers.forEach { f(it.value) }
     }
 
-    fun getLayer(i:Int) = layers.getOrNull(i)
+    fun getLayer(i: Int) = layers[i]
 
-    fun addDrawable(d:Drawable,i:Int){
+    fun addDrawable(d: Drawable, i: Int) {
         getLayer(i)?.addDrawable(d)
     }
 }

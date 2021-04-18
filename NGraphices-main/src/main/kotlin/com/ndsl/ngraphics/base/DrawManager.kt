@@ -1,6 +1,7 @@
 package com.ndsl.ngraphics.base
 
 import com.ndsl.ngraphics.display.NDisplay
+import java.awt.Color
 import java.awt.Graphics
 
 class DrawManager(val d: NDisplay) {
@@ -46,6 +47,7 @@ class DrawManager(val d: NDisplay) {
     var worseFPS = Double.MAX_VALUE
 
     fun drawAll(g: Graphics) {
+        clear(d)
         d.sceneManager.getScene()!!.forEach { layer ->
             layer.forEach {
                 it.onDraw(g)
@@ -63,6 +65,14 @@ class DrawManager(val d: NDisplay) {
         }
 
         checkWorseFPS()
+    }
+
+    var backGroundColor = Color.white
+
+    private fun clear(d: NDisplay) {
+        val g = d.volatileImage!!.graphics
+        g.color = backGroundColor
+        g.fillRect(0,0,d.width,d.height)
     }
 
     fun getLatestFPS(): Double {
