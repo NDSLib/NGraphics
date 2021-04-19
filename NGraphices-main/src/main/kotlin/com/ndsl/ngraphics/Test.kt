@@ -1,5 +1,6 @@
 package com.ndsl.ngraphics
 
+import com.ndsl.ngraphics.base.DrawMode
 import com.ndsl.ngraphics.display.NDisplay
 import com.ndsl.ngraphics.drawable.Box
 import com.ndsl.ngraphics.drawable.Picture
@@ -40,6 +41,7 @@ class Test {
 //        display.sceneManager.getScene()!!.newLayer("2nd", 1)
 //        display.sceneManager.getScene()!!.getLayer(1)!!.addDrawable(ForDebug(Rect(0, 0, 500, 500)))
         display.extendedState = JFrame.MAXIMIZED_BOTH
+        display.drawManager.drawMode = DrawMode.TargetFPS
 
         while (true) {
             display.draw()

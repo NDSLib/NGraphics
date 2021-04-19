@@ -45,6 +45,7 @@ class DrawManager(val d: NDisplay) {
     var totalTime = 0L
     var latestTime = 0.0
     var worseFPS = Double.MAX_VALUE
+    var drawMode = DrawMode.KeepUp
 
     fun drawAll(g: Graphics) {
         clear(d)
@@ -65,6 +66,10 @@ class DrawManager(val d: NDisplay) {
         }
 
         checkWorseFPS()
+
+        if(drawMode == DrawMode.TargetFPS){
+            timer.waitUntil()
+        }
     }
 
     var backGroundColor = Color.white
@@ -85,6 +90,11 @@ class DrawManager(val d: NDisplay) {
     }
 }
 
+enum class DrawMode {
+    KeepUp,TargetFPS
+
+}
+
 class Timer(val milSec: Double) {
     private var startTime: Long = 0
 
@@ -96,6 +106,13 @@ class Timer(val milSec: Double) {
         val delta = System.currentTimeMillis() - startTime
         if (delta.toDouble() >= milSec) return true
         return false
+    }
+
+    fun waitUntil(){
+        val l = getLast()
+        if(l < 0) return
+        println("waiting $l ns")
+        Thread.sleep(0,l.toInt())
     }
 
     /**
