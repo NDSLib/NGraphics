@@ -111,7 +111,6 @@ class Timer(val milSec: Double) {
     fun waitUntil(){
         val l = getLast()
         if(l < 0) return
-        println("waiting $l ns")
         Thread.sleep(0,l.toInt())
     }
 
