@@ -1,6 +1,7 @@
 package com.ndsl.ngraphics.base
 
 import com.ndsl.ngraphics.display.NDisplay
+import com.ndsl.ngraphics.pos.Rect
 import java.awt.Color
 import java.awt.Graphics
 
@@ -47,11 +48,11 @@ class DrawManager(val d: NDisplay) {
     var worseFPS = Double.MAX_VALUE
     var drawMode = DrawMode.KeepUp
 
-    fun drawAll(g: Graphics) {
+    fun drawAll(g: Graphics,r:Rect) {
         clear(d)
         d.sceneManager.getScene()!!.forEach { layer ->
             layer.forEach {
-                it.onDraw(g)
+                it.onDraw(g,r,d)
             }
         }
         d.repaint()
@@ -67,7 +68,7 @@ class DrawManager(val d: NDisplay) {
 
         checkWorseFPS()
 
-        if(drawMode == DrawMode.TargetFPS){
+        if (drawMode == DrawMode.TargetFPS) {
             timer.waitUntil()
         }
     }
@@ -77,21 +78,21 @@ class DrawManager(val d: NDisplay) {
     private fun clear(d: NDisplay) {
         val g = d.volatileImage!!.graphics
         g.color = backGroundColor
-        g.fillRect(0,0,d.width,d.height)
+        g.fillRect(0, 0, d.width, d.height)
     }
 
     fun getLatestFPS(): Double {
         return 1 / (latestTime / 1000)
     }
 
-    private fun checkWorseFPS(){
+    private fun checkWorseFPS() {
         val f = getLatestFPS()
-        if(f < worseFPS) worseFPS = f
+        if (f < worseFPS) worseFPS = f
     }
 }
 
 enum class DrawMode {
-    KeepUp,TargetFPS
+    KeepUp, TargetFPS
 
 }
 
@@ -102,16 +103,18 @@ class Timer(val milSec: Double) {
         startTime = System.currentTimeMillis()
     }
 
+    fun isStarted() = startTime != 0L
+
     fun isUp(): Boolean {
         val delta = System.currentTimeMillis() - startTime
         if (delta.toDouble() >= milSec) return true
         return false
     }
 
-    fun waitUntil(){
+    fun waitUntil() {
         val l = getLast()
-        if(l < 0) return
-        Thread.sleep(0,l.toInt())
+        if (l < 0) return
+        Thread.sleep(0, l.toInt())
     }
 
     /**
@@ -127,4 +130,11 @@ class Timer(val milSec: Double) {
     fun getDelta(): Double {
         return ((System.currentTimeMillis() - startTime).toDouble())
     }
+}
+
+fun time(f: () -> Unit, ff: (Long) -> Unit) {
+    val start = System.currentTimeMillis()
+    f()
+    val end = System.currentTimeMillis()
+    ff(end - start)
 }

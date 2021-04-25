@@ -1,30 +1,29 @@
 package com.ndsl.ngraphics.display
 
 import com.ndsl.ngraphics.base.DrawManager
+import com.ndsl.ngraphics.base.time
 import com.ndsl.ngraphics.pos.Pos
 import com.ndsl.ngraphics.pos.Rect
 import com.ndsl.ngraphics.scene.Scene
 import com.ndsl.ngraphics.scene.SceneManager
 import com.ndsl.ngraphics.util.Register
 import com.ndsl.ngraphics.util.TypedRegister
-import java.awt.Component
-import java.awt.Graphics
-import java.awt.Image
-import java.awt.Toolkit
+import java.awt.*
 import java.awt.event.*
 import java.awt.image.VolatileImage
 import javax.swing.JFrame
 import javax.swing.WindowConstants
 
-class NDisplay(title: String, bound: Rect/*, bufferSize: Int = 3*/, onClose: Int = WindowConstants.EXIT_ON_CLOSE) : JFrame(title) {
-//    var buffer: BufferStrategy
+class NDisplay(title: String, bound: Rect/*, bufferSize: Int = 3*/, onClose: Int = WindowConstants.EXIT_ON_CLOSE) :
+    JFrame(title) {
+    //    var buffer: BufferStrategy
     val windowListener = MainWindowListener(this)
     val exit = ExitManager(this)
     val mouse = MouseInputHandler(this)
     val sceneManager = SceneManager(this)
     val drawManager = DrawManager(this)
     val component = this as Component
-    var volatileImage : VolatileImage? = null
+    var volatileImage: VolatileImage? = null
     var mWidth = 0
     var mHeight = 0
 
@@ -42,7 +41,7 @@ class NDisplay(title: String, bound: Rect/*, bufferSize: Int = 3*/, onClose: Int
         addMouseWheelListener(mouse)
 
         val scene = Scene("Default")
-        scene.newLayer("Default",0)
+        scene.newLayer("Default", 0)
         sceneManager.addScene(scene)
 
         initVolatileImage()
@@ -50,13 +49,13 @@ class NDisplay(title: String, bound: Rect/*, bufferSize: Int = 3*/, onClose: Int
 
     //VRAMバッファ用イメージの初期化
     private fun initVolatileImage() {
-
         //VRAMバッファ用イメージが未作成、もしくは現在のサイズと
         //異なっている場合は生成処理を実行する
         if (volatileImage == null || mWidth != component.width || mHeight != component.height) {
             mWidth = component.width
             mHeight = component.height
             volatileImage = component.createVolatileImage(mWidth, mHeight)
+            volatileImage?.accelerationPriority = 1.0F
         }
     }
 
@@ -81,7 +80,7 @@ class NDisplay(title: String, bound: Rect/*, bufferSize: Int = 3*/, onClose: Int
 
     //描画したコンテンツが失われているかのチェック
     fun isContentsLost(): Boolean {
-        if(volatileImage == null) return true
+        if (volatileImage == null) return true
         return volatileImage!!.contentsLost()
     }
 
@@ -93,27 +92,43 @@ class NDisplay(title: String, bound: Rect/*, bufferSize: Int = 3*/, onClose: Int
     /**
      * Call This As Often As You Can
      */
-    fun draw(){
+    fun draw() {
         drawManager.draw()
     }
 
     override fun update(g: Graphics?) {
-        if(g == null){
+        if (g == null) {
             println("Skipped Frame!")
-        }else{
-            drawManager.drawAll(g)
+        } else {
+            drawManager.drawAll(g,Rect(0,0,width,height))
+//            val inset = insets
+//            drawManager.drawAll(g,
+//                Rect(inset.left, inset.top, width - (inset.left + inset.right), height - (inset.top + inset.bottom)))
         }
     }
 
     override fun repaint() {
         Toolkit.getDefaultToolkit().sync()
         val img = getImage()
-        if(img != null){
-            super.getGraphics().drawImage(img,0,0,null)
+        if (img != null) {
+            time({
+                super.getGraphics().drawImage(img, 0, 0, null)
+            }, {
+//                println("Copying to JFrame:$it ms")
+            })
         }
     }
 
-    fun contain(p:Pos) = p.x in 0..width && p.y in 0..height
+    fun contain(p: Pos) = p.x in 0..width && p.y in 0..height
+
+    fun setFullScreen() {
+        val env = GraphicsEnvironment.getLocalGraphicsEnvironment()
+        val device = env.defaultScreenDevice
+        if (device.isFullScreenSupported) {
+            println("FullScreenSupported!!")
+            device.fullScreenWindow = this
+        }
+    }
 }
 
 class MainWindowListener(val display: NDisplay) : WindowListener {
@@ -167,7 +182,7 @@ class ExitManager(private val display: NDisplay) {
     }
 }
 
-class MouseInputHandler(val display: NDisplay) : MouseMotionListener, MouseListener,MouseWheelListener {
+class MouseInputHandler(val display: NDisplay) : MouseMotionListener, MouseListener, MouseWheelListener {
     val register: TypedRegister<MouseEvent, MouseEventType> = TypedRegister()
     var nowPos = Pos(0, 0)
     var oldPos = Pos(0, 0)
@@ -219,7 +234,7 @@ class MouseInputHandler(val display: NDisplay) : MouseMotionListener, MouseListe
         register.invoke(MouseEventType.Exit, e)
     }
 
-    val wheel : Register<MouseWheelEvent> = Register()
+    val wheel: Register<MouseWheelEvent> = Register()
 
     override fun mouseWheelMoved(e: MouseWheelEvent) {
         wheel.invoke(e)
